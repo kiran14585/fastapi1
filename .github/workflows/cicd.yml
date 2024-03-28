@@ -1,4 +1,4 @@
-name: CI/CD Workflow
+name: Local Docker Build and Run
 
 on:
   push:
