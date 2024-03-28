@@ -20,4 +20,4 @@ jobs:
         run: docker pull kiran14585/fast-api:1.0.0
 
       - name: Run Docker container
-        run: docker run -d --name yourcontainer -p 80:80 kiran14585/fast-api:1.0.0
+        run: docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
