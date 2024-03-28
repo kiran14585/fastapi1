@@ -1,4 +1,4 @@
-name: Local Docker Build and Run
+name: Deploy to EC2
 
 on:
   push:
@@ -13,11 +13,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Log in to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
 
-      - name: Pull Docker image
-        run: docker pull kiran14585/fast-api:1.0.0
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Run Docker container
-        run: docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
+      - name: Fetch Docker Hub credentials
+        run: |
+          DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
+          export DOCKER_USERNAME DOCKER_PASSWORD
+
+      - name: Connect to EC2 and run commands
+        run: |
+          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} ec2-user@your-ec2-instance-ip-address 'bash -s' << 'ENDSSH'
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker pull kiran14585/fast-api:1.0.0
+          docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
+          ENDSSH
