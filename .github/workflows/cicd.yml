@@ -1,31 +1,43 @@
-name: CI/CD Pipeline
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3
         with:
-          python-version: '3.9' 
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Install dependencies
+      - name: Fetch Docker Hub credentials
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
+          export DOCKER_USERNAME DOCKER_PASSWORD
 
-      - name: Build Docker image
-        run: docker build -t myapp .
+      - name: Set up SSH key and add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 34.204.67.5 >> ~/.ssh/known_hosts
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-      - name: Deploy
-        # Add your deployment steps here
-        # For example: kubectl apply -f deployment.yaml
+      - name: Connect to EC2 and run commands
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@ip-172-31-83-134 'bash -s' << 'ENDSSH'
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker pull kiran14585/fast-api:1.0.0
+          docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
+          ENDSSH
