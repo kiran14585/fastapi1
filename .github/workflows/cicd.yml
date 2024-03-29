@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Build and Push Docker Image
 
 on:
   push:
@@ -6,41 +6,21 @@ on:
       - main
 
 jobs:
-  deploy:
+  build_and_push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install SSH client
-        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Fetch Docker Hub credentials
-        run: |
-          DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
-          export DOCKER_USERNAME DOCKER_PASSWORD
-
-      - name: Set up SSH key and add host to known_hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H 34.207.166.254 >> ~/.ssh/known_hosts
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Connect to EC2 and run commands
-        run: |
-          ./.github/actions/custom-ssh/ssh-action.sh "${{ secrets.SSH_PRIVATE_KEY }}" "ubuntu@34.207.166.254" 'bash -s' << 'ENDSSH'
-          echo "SSH connection successful"
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-          docker pull kiran14585/fast-api:1.0.0
-          docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
-          ENDSSH
+      - name: Build and push Docker image
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker buildx build --platform linux/amd64,linux/arm64 -t $DOCKER_USERNAME/fast-api:latest .
+          docker push $DOCKER_USERNAME/fast-api:latest
