@@ -23,21 +23,27 @@ jobs:
 
       - name: Fetch Docker Hub credentials
         run: |
-          DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
-          export DOCKER_USERNAME DOCKER_PASSWORD
+          echo "${{ secrets.DOCKER_USERNAME }}" > ~/.docker/config.json
+          echo "${{ secrets.DOCKER_PASSWORD }}" >> ~/.docker/config.json
 
       - name: Set up SSH key and add host to known_hosts
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H 34.204.67.5 >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      - name: Build Docker image
+        run: docker build -t my_image_name:latest .
+
       - name: Connect to EC2 and run commands
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@ip-172-31-83-134 'bash -s' << 'ENDSSH'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@ip-172-31-83-134 'bash -s' << 'ENDSSH'
+          export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          export DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
           docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-          docker pull kiran14585/fast-api:1.0.0
-          docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
+          docker pull my_image_name:latest
+          docker run -d --name my_container -p 8000:8000 my_image_name:latest
           ENDSSH
