@@ -30,14 +30,17 @@ jobs:
       - name: Set up SSH key and add host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H 34.207.166.254>> ~/.ssh/known_hosts
+          ssh-keyscan -H 34.207.166.254 >> ~/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
       - name: Connect to EC2 and run commands
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@34.207.166.254 'bash -s' << 'ENDSSH'
+          ./.github/actions/custom-ssh/ssh-action.sh "${{ secrets.SSH_PRIVATE_KEY }}" "ubuntu@34.207.166.254" 'bash -s' << 'ENDSSH'
+          echo "SSH connection successful"
           docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
           docker pull kiran14585/fast-api:1.0.0
           docker run -d --name yourcontainer -p 8000:8000 kiran14585/fast-api:1.0.0
           ENDSSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
