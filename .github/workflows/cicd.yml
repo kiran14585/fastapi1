@@ -22,7 +22,7 @@ jobs:
     - name: Build and push Docker image
       run: |
         docker buildx create --use
-        docker buildx build --platform linux/amd64,linux/arm64 -t <your-docker-username>/<your-image-name>:latest .
+        docker buildx build --platform linux/amd64,linux/arm64 -t kiran14585/fastapi:latest .
         docker push <your-docker-username>/<your-image-name>:latest
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
