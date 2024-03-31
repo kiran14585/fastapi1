@@ -23,7 +23,7 @@ jobs:
       run: |
         docker buildx create --use
         docker buildx build --platform linux/amd64,linux/arm64 -t kiran14585/fastapi:latest .
-        docker push <your-docker-username>/<your-image-name>:latest
+        docker push kiran14585/fastapi:latest  # Corrected this line
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
