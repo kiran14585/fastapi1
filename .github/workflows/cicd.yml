@@ -26,3 +26,15 @@ jobs:
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Install SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        script: |
+          docker pull kiran14585/fastapi:latest
+          docker stop my_container || true
+          docker rm my_container || true
+          docker run -d --name my_container -p 8000:8000 kiran14585/fastapi:latest
