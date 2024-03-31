@@ -7,19 +7,19 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Pull Docker image
-        run: sudo docker pull kiran14585/fastapi:latest
+        run: docker pull kiran14585/fastapi:latest
 
       - name: Stop and remove old Docker container
         run: |
-          sudo docker stop fastapi-container || true
-          sudo docker rm fastapi-container || true
+          docker stop fastapi-container || true
+          docker rm fastapi-container || true
 
       - name: Run Docker container
-        run: sudo docker run -d -p 8000:8000 --name fastapi-container kiran14585/fastapi:latest
+        run: docker run -d -p 8000:8000 --name fastapi-container kiran14585/fastapi:latest
