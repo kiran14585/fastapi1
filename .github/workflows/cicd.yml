@@ -23,4 +23,4 @@ jobs:
           sudo docker rm fastapi-container || true
 
       - name: Run Docker container
-        run: sudo docker run -d -p 8080:8080 --name fastapi-container kiran14585/fastapi:latest
+        run: sudo docker run -d -p 8000:8000 --name fastapi-container kiran14585/fastapi:latest
