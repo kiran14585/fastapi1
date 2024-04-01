@@ -5,6 +5,6 @@ app =  FastAPI()
 
 @app.get("/")
 def test():
-    return "Hello- this is kiran1"   
+    return "Hello-world"   
 
     
