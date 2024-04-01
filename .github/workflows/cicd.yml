@@ -17,13 +17,19 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        run: |
+          echo "Logging into Dockerhub..."
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - name: Build the Docker image
-        run: docker build -t kiran14585/fastapi .
+        run: |
+          echo "Building the Docker image..."
+          docker build -t kiran14585/fastapi .
 
       - name: Push to Dockerhub
-        run: docker push kiran14585/fastapi:latest
+        run: |
+          echo "Pushing the Docker image to Dockerhub..."
+          docker push kiran14585/fastapi:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -31,6 +37,14 @@ jobs:
     needs: build
 
     steps:
+      - name: Debug SSH into EC2
+        run: |
+          echo "Debugging SSH into EC2..."
+          echo "EC2 Host: ${{ secrets.EC2_HOST }}"
+          echo "EC2 Username: ${{ secrets.EC2_USERNAME }}"
+          echo "EC2 SSH Port: ${{ secrets.EC2_SSH_PORT }}"
+          echo "EC2 SSH Private Key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}"
+      
       - name: SSH into EC2 and deploy
         uses: appleboy/ssh-action@master
         with:
@@ -40,11 +54,14 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
             # Pull Docker image
+            echo "Pulling Docker image..."
             docker pull kiran14585/fastapi:latest
             
             # Stop and remove existing container if any
+            echo "Stopping and removing existing container..."
             docker stop fastapi-app || true
             docker rm fastapi-app || true
             
             # Run Docker container
+            echo "Running Docker container..."
             docker run -d --name fastapi-app -p 8000:8000 kiran14585/fastapi:latest
