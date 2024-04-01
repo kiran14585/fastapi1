@@ -44,21 +44,24 @@ jobs:
           echo "EC2 Username: ${{ secrets.EC2_USERNAME }}"
           echo "EC2 SSH Port: ${{ secrets.EC2_SSH_PORT }}"
           echo "EC2 SSH Private Key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}"
-
+      
       - name: SSH into EC2 and deploy
-        run: |
-          echo "Connecting to EC2 instance..."
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} -o StrictHostKeyChecking=no -p ${{ secrets.EC2_SSH_PORT }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          script: |
             # Pull Docker image
             echo "Pulling Docker image..."
             docker pull kiran14585/fastapi:latest
-
+            
             # Stop and remove existing container if any
             echo "Stopping and removing existing container..."
             docker stop fastapi-app || true
             docker rm fastapi-app || true
-
+            
             # Run Docker container
             echo "Running Docker container..."
             docker run -d --name fastapi-app -p 8000:8000 kiran14585/fastapi:latest
-          EOF
