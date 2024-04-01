@@ -20,8 +20,7 @@ jobs:
           
         run: |
           echo "Logging into Dockerhub..."
-          echo ${{ DOCKER_USERNAME }}
-          echo ${{ DOCKER_PASSWORD }}
+  
           docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - name: Build the Docker image
@@ -59,10 +58,7 @@ jobs:
             # Pull Docker image
             echo "Pulling Docker image..."
             echo "Pulling Docker image..."
-            echo ${{ secrets.EC2_HOST }}
-            echo ${{ secrets.EC2_USERNAME }}
-            echo ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-            echo ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          
             docker pull kiran14585/fastapi:latest
             
             # Stop and remove existing container if any
