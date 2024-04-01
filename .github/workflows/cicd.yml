@@ -1,11 +1,15 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
 
 jobs:
-  build:
+  CI_pipeline:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -21,3 +25,14 @@ jobs:
       
     - name: Push to Dockerhub
       run: docker push kiran14585/fastapi:latest
+
+  CD_pipeline:
+    runs-on: ubuntu-latest
+    needs: CI_pipeline
+    steps:
+    - name: Pull Docker image
+      run: sudo docker pull kiran14585/fastapi:latest
+    - name: Delete Old docker container
+      run: sudo docker rm -f cicd-pipeline-container || true
+    - name: Run Docker Container
+      run: sudo docker run -d -p 8000:8000 --name cicd-pipeline-container kiran14585/fastapi
