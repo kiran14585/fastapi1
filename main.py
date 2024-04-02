@@ -6,7 +6,7 @@ app =  FastAPI()
 
 @app.get("/")
 def test():
-    return "Hello!"
+    return "Hello world!"
 
     
 
