@@ -5,6 +5,7 @@ app =  FastAPI()
 
 @app.get("/")
 def test():
-    return "hello world"   
+    
+    return "<h1 style='color:blue'>Happy birthday Shabeeb!</h1>"
 
     
